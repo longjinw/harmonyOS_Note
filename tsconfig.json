@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"],
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/main/ets/*"]
+    }
+  }
+}

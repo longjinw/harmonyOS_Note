@@ -1,0 +1,14 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/login",
+    "pages/zhuye",
+    "pages/My_notes",
+    "pages/New_note",
+    "pages/test",
+    "pages/sign_in",
+    "pages/register_success",
+    "pages/main"
+
+  ]
+}

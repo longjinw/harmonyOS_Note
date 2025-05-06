@@ -1,0 +1,7 @@
+{
+  "layered-image":
+  {
+    "background" : "$media:logo_ai",
+    "foreground" : "$media:logo_ai"
+  }
+}
