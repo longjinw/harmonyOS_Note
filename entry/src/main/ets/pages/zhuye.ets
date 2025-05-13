@@ -2,6 +2,10 @@ import router from '@ohos.router';
 import { LvMarkdownIn } from '@luvi/lv-markdown-in'
 import { getAllNotes, Note } from './databaseManager'
 import promptAction from '@ohos.promptAction';
+import window from '@ohos.window';
+import common from '@ohos.app.ability.common';
+import display from '@ohos.display';
+import { ThemeManager } from '../common/ThemeManager';
 
 @Entry
 @Component
@@ -11,9 +15,26 @@ struct main_page {
   @State selectedNote: Note | null = null
   @State searchText: string = ''
   @State filteredNotes: Note[] = []
+  private themeManager: ThemeManager = ThemeManager.getInstance();
 
   aboutToAppear() {
-    this.loadNotes()
+    this.loadNotes();
+    this.themeManager.init();
+    // 订阅主题变化事件
+    ThemeManager.subscribeToThemeChange((isDarkMode) => {
+      // 主题变化时刷新页面
+      this.updateTheme();
+    });
+  }
+
+  aboutToDisappear() {
+    // 取消订阅
+    ThemeManager.unsubscribeFromThemeChange();
+  }
+
+  updateTheme() {
+    // 强制刷新页面
+    this.notes = [...this.notes];
   }
 
   async loadNotes() {
@@ -36,7 +57,7 @@ struct main_page {
       this.filteredNotes = this.notes
       return
     }
-    const searchLower = text.toLowerCase()
+    const searchLower: string = text.toLowerCase()
     this.filteredNotes = this.notes.filter(note => 
       note.title.toLowerCase().includes(searchLower) || 
       note.content.toLowerCase().includes(searchLower)
@@ -48,42 +69,52 @@ struct main_page {
       // 顶部标题栏
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
         Text('NOTE')
-          .fontSize(28)
+          .fontSize(32)
           .fontWeight(FontWeight.Bold)
-          .margin({ left: 16 })
+          .fontColor(this.themeManager.getTextColor())
+          .margin({ left: 20 })
 
         Button({ type: ButtonType.Circle, stateEffect: true }) {
           Image($r("app.media.ic_public_settings"))
-            .width(32)
-            .height(32)
+            .width(28)
+            .height(28)
         }
-        .margin({ right: 16 })
-        .width(48)
-        .height(48)
-        .backgroundColor('#ffffff')
+        .margin({ right: 20 })
+        .width(44)
+        .height(44)
+        .backgroundColor(this.themeManager.getButtonColor())
+        .onClick(() => {
+          router.push({ url: 'pages/setting' });
+        })
       }
       .width('100%')
-      .height('10%')
+      .height('12%')
       .padding({ top: 20 })
-
-      // 分割线
-      Divider()
-        .strokeWidth(1)
-        .color('#ccc')
+      .backgroundColor(this.themeManager.getCardBackgroundColor())
 
       // 搜索框
       Row() {
+        Image($r('app.media.ic_files_name_drive'))
+          .width(24)
+          .height(24)
+          .margin({ left: 16 })
+          .fillColor(this.themeManager.getTextColor())
         TextInput({ placeholder: '搜索笔记' })
-          .width('100%')
+          .width('85%')
           .height(40)
-          .margin({ left: 16, right: 16 })
+          .margin({ left: 8, right: 16 })
+          .backgroundColor(this.themeManager.getSearchBackgroundColor())
+          .borderRadius(20)
+          .placeholderColor(this.themeManager.getSecondaryTextColor())
+          .fontColor(this.themeManager.getTextColor())
           .onChange((value: string) => {
             this.searchNotes(value)
           })
       }
       .width('100%')
-      .height('10%')
+      .height('8%')
       .padding({ top: 10 })
+      .backgroundColor(this.themeManager.getCardBackgroundColor())
 
       // 主内容区域 - 笔记列表
       List() {
@@ -92,7 +123,7 @@ struct main_page {
             Column() {
               Text(this.searchText ? '未找到相关笔记' : '暂无笔记')
                 .fontSize(16)
-                .fontColor(Color.Gray)
+                .fontColor(this.themeManager.getSecondaryTextColor())
                 .margin({ top: 20 })
             }
             .width('100%')
@@ -106,14 +137,16 @@ struct main_page {
                 Text(note.title)
                   .fontSize(18)
                   .fontWeight(FontWeight.Bold)
-                  .margin({ bottom: 5 })
+                  .fontColor(this.themeManager.getTextColor())
+                  .margin({ bottom: 8 })
                 
                 // 笔记预览
                 LvMarkdownIn({ text: note.content })
                   .width('100%')
                   .height(100)
-                  .border({ width: 1, color: Color.Gray })
-                  .margin({ bottom: 10 })
+                  .borderRadius(8)
+                  .backgroundColor(this.themeManager.getNotePreviewBackgroundColor())
+                  .margin({ bottom: 12 })
                   .onClick(() => {
                     this.selectedNote = note
                     this.showPreview = true
@@ -123,27 +156,28 @@ struct main_page {
                 Row() {
                   Text(note.createTime)
                     .fontSize(12)
-                    .fontColor(Color.Gray)
+                    .fontColor(this.themeManager.getSecondaryTextColor())
                   Text(note.updateTime)
                     .fontSize(12)
-                    .fontColor(Color.Gray)
+                    .fontColor(this.themeManager.getSecondaryTextColor())
                     .margin({ left: 10 })
                 }
                 .width('100%')
                 .justifyContent(FlexAlign.SpaceBetween)
               }
               .width('100%')
-              .padding(10)
-              .backgroundColor('#F5F5DC')
-              .borderRadius(10)
-              .margin({ bottom: 10 })
+              .padding(16)
+              .backgroundColor(this.themeManager.getCardBackgroundColor())
+              .borderRadius(12)
+              .margin({ bottom: 12 })
+              .shadow({ radius: 6, color: this.themeManager.isDark() ? '#000000' : '#1A000000', offsetX: 2, offsetY: 4 })
             }
           })
         }
       }
       .width('100%')
-      .height('100%')
-      .padding(10)
+      .height('80%')
+      .padding({ left: 16, right: 16 })
 
       // 预览弹窗
       if (this.showPreview && this.selectedNote) {
@@ -156,7 +190,7 @@ struct main_page {
                 .width(24)
                 .height(24)
             }
-            .backgroundColor('#F5F5DC')
+            .backgroundColor(this.themeManager.getButtonColor())
             .onClick(() => {
               this.showPreview = false
               this.selectedNote = null
@@ -168,94 +202,84 @@ struct main_page {
                 .width(24)
                 .height(24)
             }
-            .backgroundColor('#F5F5DC')
+            .backgroundColor(this.themeManager.getButtonColor())
             .onClick(() => {
               router.push({
                 url: 'pages/New_note',
                 params: {
                   noteId: this.selectedNote?.id,
                   title: this.selectedNote?.title,
-                  content: this.selectedNote?.content
+                  content: this.selectedNote?.content,
+                  isEdit: true
                 }
               })
             })
-            .width('70%')
-            .layoutWeight(1)
           }
           .width('100%')
           .padding(10)
           .justifyContent(FlexAlign.SpaceBetween)
+          .backgroundColor(this.themeManager.getCardBackgroundColor())
 
           // 笔记内容
           Column() {
             Text(this.selectedNote.title)
-              .fontSize(20)
+              .fontSize(24)
               .fontWeight(FontWeight.Bold)
-              .margin({ bottom: 10 })
+              .fontColor(this.themeManager.getTextColor())
+              .margin({ bottom: 20 })
             
             LvMarkdownIn({ text: this.selectedNote.content })
               .width('100%')
               .height('100%')
-              .border({ width: 1, color: Color.Gray })
           }
           .width('100%')
           .height('100%')
-          .padding(10)
+          .padding(20)
+          .backgroundColor(this.themeManager.getCardBackgroundColor())
         }
         .width('100%')
         .height('100%')
-        .backgroundColor(Color.White)
+        .backgroundColor(this.themeManager.getBackgroundColor())
+        .position({ x: 0, y: 0 })
+        .zIndex(999)
       }
 
-      // 底部按钮栏
-      Row() {
-        Button({ type: ButtonType.Normal, stateEffect: true }) {
-          Column() {
-            Image($r("app.media.ic_files_name_drive"))
-              .width(32)
-              .height(32)
-            Text('笔记')
-              .fontSize(12)
-          }
-          .justifyContent(FlexAlign.Center)
-        }
-        .width('33%')
-        .height('100%')
-        .backgroundColor('#FFF5EE')
-
-        Button({ type: ButtonType.Normal, stateEffect: true }) {
-          Image($r("app.media.ic_public_add"))
-            .width(32)
-            .height(32)
-        }
-        .width('33%')
-        .height('100%')
-        .backgroundColor('#FFF5EE')
-        .onClick(() => {
-          router.push({ url: 'pages/New_note' });
-        })
-
-        Button({ type: ButtonType.Normal, stateEffect: true }) {
-          Column() {
-            Image($r("app.media.ic_gallery_material_select_checkbox"))
-              .width(32)
-              .height(32)
-            Text('代办')
-              .fontSize(12)
-          }
-          .justifyContent(FlexAlign.Center)
-        }
-        .width('33%')
-        .height('100%')
-        .backgroundColor('#FFF5EE')
+      // 待办按钮
+      Button({ type: ButtonType.Normal, stateEffect: true }) {
+        Image($r("app.media.ic_public_arrow_right"))
+          .width(32)
+          .height(32)
       }
-      .width('100%')
-      .height('10%')
-      .backgroundColor('#ffffff')
-      .position({ x: 0, y: '100%' })
-      .translate({ y: '-100%' })
+      .width(60)
+      .height(60)
+      .borderRadius(30)
+      .backgroundColor(this.themeManager.getButtonColor())
+      .position({ x: '100%', y: '100%' })
+      .translate({ x: -80, y: -160 })  // y值设置为新建按钮的两倍，确保在其上方
+      .shadow({ radius: 8, color: this.themeManager.isDark() ? '#000000' : '#1A000000', offsetX: 0, offsetY: 4 })
+      .onClick(() => {
+        router.push({ url: 'pages/todo' });
+      })
+
+      // 浮动新建按钮
+      Button({ type: ButtonType.Normal, stateEffect: true }) {
+        Image($r("app.media.ic_public_add"))
+          .width(32)
+          .height(32)
+      }
+      .width(60)
+      .height(60)
+      .borderRadius(30)
+      .backgroundColor(this.themeManager.getButtonColor())
+      .position({ x: '100%', y: '100%' })
+      .translate({ x: -80, y: -80 })
+      .shadow({ radius: 8, color: this.themeManager.isDark() ? '#000000' : '#1A000000', offsetX: 0, offsetY: 4 })
+      .onClick(() => {
+        router.push({ url: 'pages/New_note' });
+      })
     }
     .width('100%')
     .height('100%')
+    .backgroundColor(this.themeManager.getBackgroundColor())
   }
 }

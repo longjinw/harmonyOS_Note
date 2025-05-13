@@ -1,5 +1,6 @@
 import router from '@ohos.router';
 import { User } from '../my_class/user';
+import promptAction from '@ohos.promptAction';
 
 @Entry
 @Component
@@ -10,111 +11,152 @@ struct SignIn {
   @State confirmPassword: string = '';
 
   build() {
-    Column({ space: 15 }) {
-      TextInput({ placeholder: '请输入昵称' })
-        .onEditChange((isEditing: boolean) => {
-          if (!isEditing) {
-            this.nickname = this.nickname; // 保持状态不变，因为 onEditChange 只接收 isEditing 参数
-          }
+    Column() {
+      // 顶部导航栏
+      Row() {
+        Button() {
+          Image($r('app.media.ic_public_arrow_left_filled'))
+            .width(24)
+            .height(24)
+        }
+        .backgroundColor('#F5F5DC')
+        .onClick(() => {
+          router.back();
         })
-        .onChange((value: string) => {
-          this.nickname = value; // 使用 onChange 来更新状态
-        })
-        .width('100%')
-        .margin({ bottom: 15 })
-        .placeholderColor('#999999')
-        .placeholderFont({ size: 14, weight: FontWeight.Regular });
 
-      TextInput({ placeholder: '请输入账号' })
-        .onEditChange((isEditing: boolean) => {
-          if (!isEditing) {
-            this.account = this.account; // 保持状态不变，因为 onEditChange 只接收 isEditing 参数
-          }
-        })
-        .onChange((value: string) => {
-          this.account = value; // 使用 onChange 来更新状态
-        })
-        .width('100%')
-        .margin({ bottom: 15 })
-        .placeholderColor('#999999')
-        .placeholderFont({ size: 14, weight: FontWeight.Regular });
+        Text('注册新账号')
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#4A4A4A')
+          .margin({ left: 16 })
+      }
+      .width('100%')
+      .padding(16)
+      .backgroundColor('#FFFFFF')
 
-      TextInput({ placeholder: '请输入密码' })
-        .onEditChange((isEditing: boolean) => {
-          if (!isEditing) {
-            this.password = this.password; // 保持状态不变，因为 onEditChange 只接收 isEditing 参数
-          }
-        })
-        .onChange((value: string) => {
-          this.password = value; // 使用 onChange 来更新状态
-        })
-        .type(InputType.Password)
-        .width('100%')
-        .margin({ bottom: 15 })
-        .placeholderColor('#999999')
-        .placeholderFont({ size: 14, weight: FontWeight.Regular });
+      // 表单区域
+      Column() {
+        // 昵称输入框
+        TextInput({ placeholder: '请输入昵称', text: this.nickname })
+          .width('85%')
+          .height(50)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .padding({ left: 20, right: 20 })
+          .fontSize(16)
+          .fontColor('#333333')
+          .placeholderColor('#999999')
+          .margin({ top: 30, bottom: 20 })
+          .onChange((value: string) => {
+            this.nickname = value;
+          })
 
-      TextInput({ placeholder: '请再次输入密码' })
-        .onEditChange((isEditing: boolean) => {
-          if (!isEditing) {
-            this.confirmPassword = this.confirmPassword; // 保持状态不变，因为 onEditChange 只接收 isEditing 参数
-          }
-        })
-        .onChange((value: string) => {
-          this.confirmPassword = value; // 使用 onChange 来更新状态
-        })
-        .type(InputType.Password)
-        .width('100%')
-        .margin({ bottom: 15 })
-        .placeholderColor('#999999')
-        .placeholderFont({ size: 14, weight: FontWeight.Regular });
+        // 账号输入框
+        TextInput({ placeholder: '请输入账号', text: this.account })
+          .width('85%')
+          .height(50)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .padding({ left: 20, right: 20 })
+          .fontSize(16)
+          .fontColor('#333333')
+          .placeholderColor('#999999')
+          .margin({ bottom: 20 })
+          .onChange((value: string) => {
+            this.account = value;
+          })
 
-      Button('确认')
-        .width('100%')
-        .onClick(async () => {
-          await this.handleRegister();
-        });
+        // 密码输入框
+        TextInput({ placeholder: '请输入密码', text: this.password })
+          .width('85%')
+          .height(50)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .padding({ left: 20, right: 20 })
+          .fontSize(16)
+          .fontColor('#333333')
+          .placeholderColor('#999999')
+          .type(InputType.Password)
+          .margin({ bottom: 20 })
+          .onChange((value: string) => {
+            this.password = value;
+          })
+
+        // 确认密码输入框
+        TextInput({ placeholder: '请再次输入密码', text: this.confirmPassword })
+          .width('85%')
+          .height(50)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .padding({ left: 20, right: 20 })
+          .fontSize(16)
+          .fontColor('#333333')
+          .placeholderColor('#999999')
+          .type(InputType.Password)
+          .margin({ bottom: 40 })
+          .onChange((value: string) => {
+            this.confirmPassword = value;
+          })
+
+        // 注册按钮
+        Button('注册')
+          .width('85%')
+          .height(50)
+          .fontSize(18)
+          .fontWeight(FontWeight.Medium)
+          .backgroundColor('#E6D5B8')
+          .borderRadius(25)
+          .onClick(async () => {
+            await this.handleRegister();
+          })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
     }
-    .height('100%')
     .width('100%')
-    .padding(20);
+    .height('100%')
+    .backgroundColor('#F5F5F5')
   }
 
   private async handleRegister() {
+    if (!this.nickname || !this.account || !this.password || !this.confirmPassword) {
+      promptAction.showToast({
+        message: '请填写完整信息',
+        duration: 2000
+      });
+      return;
+    }
+
     if (this.password !== this.confirmPassword) {
-      console.error('Passwords do not match');
+      promptAction.showToast({
+        message: '两次输入的密码不一致',
+        duration: 2000
+      });
       return;
     }
 
     try {
-      // 检查账号是否已存在
       const existingUser = await User.fetchFromDatabase(this.account);
       if (existingUser) {
-        console.error('Account already exists');
+        promptAction.showToast({
+          message: '该账号已被注册',
+          duration: 2000
+        });
         return;
       }
 
-      // 创建新用户实例
       const currentTime = new Date();
       const newUser = new User(
         this.nickname,
         this.account,
         this.password,
-        currentTime, // 注册时间
-        currentTime, // 最后登录时间
-        [currentTime] // 登录记录
+        currentTime,
+        currentTime,
+        [currentTime]
       );
 
-      // 保存用户数据到数据库
       await newUser.saveToDatabase();
 
-      // 输出注册成功信息
-      console.log('User registered successfully');
-      console.log('User ID:', newUser.id);
-      console.log('Nickname:', newUser.nickname);
-      console.log('Password:', newUser.password);
-
-      // 跳转到注册成功页面
       router.push({
         url: 'pages/register_success',
         params: {
@@ -123,8 +165,11 @@ struct SignIn {
         }
       });
     } catch (error) {
-      console.error('Failed to save user information:', error);
-      console.error('Registration failed, please check your input or try again later');
+      console.error('注册失败:', error);
+      promptAction.showToast({
+        message: '注册失败，请稍后重试',
+        duration: 2000
+      });
     }
   }
 }

@@ -111,82 +111,114 @@ struct LoginPage {
 
   build() {
     Column() {
-      // Logo 图片
-      Image($r('app.media.logo_ai'))
-        .width('80%')
-        .height(50)
-        .margin({ top: 50, bottom: 20 })
-        .objectFit(ImageFit.Contain)
+      // 顶部Logo区域
+      Column() {
+        Image($r('app.media.logo_ai'))
+          .width('60%')
+          .height(60)
+          .margin({ top: 80, bottom: 20 })
+          .objectFit(ImageFit.Contain)
 
-      TextInput({ placeholder: '请输入账号', text: this.account })
-        .width('80%')
-        .height(50)
-        .margin({ top: 20 })
-        .backgroundColor('#F5DEB3') // 米黄色背景
-        .fontColor(Color.White) // 白色字体
-        .placeholderColor(Color.White) // 白色占位符
-        .onChange((value) => {
-          this.account = value;
-        });
-
-      TextInput({ placeholder: '请输入密码', text: this.password })
-        .width('80%')
-        .height(50)
-        .margin({ top: 20 })
-        .backgroundColor('#F5DEB3') // 米黄色背景
-        .fontColor(Color.White) // 白色字体
-        .placeholderColor(Color.White) // 白色占位符
-        .type(InputType.Password)
-        .onChange((value) => {
-          this.password = value;
-        });
-
-      // 记住密码选择框
-      Row() {
-        Checkbox()
-          .select(this.rememberPassword)
-          .onChange((isSelected) => {
-            this.rememberPassword = isSelected;
-            if (!isSelected && this.preferences) {
-              // 取消记住密码时，清空保存的账号密码
-              this.preferences.delete('savedAccount');
-              this.preferences.delete('savedPassword');
-              this.preferences.put('rememberPassword', false);
-              this.preferences.flush();
-              this.account = '';
-              this.password = '';
-            }
-          })
-        Text('记住密码') // 注释：是否下次免输入密码
-          .fontSize(14)
-          .margin({ left: 8 })
+        Text('欢迎回来')
+          .fontSize(28)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#4A4A4A')
+          .margin({ bottom: 40 })
       }
-      .width('80%')
-      .margin({ top: 10 })
-      .justifyContent(FlexAlign.Start)
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
 
-      Button('登录')
-        .width('80%')
-        .height(50)
-        .margin({ top: 30 })
-        .onClick(() => {
-          this.handleLogin();
-        });
+      // 输入框区域
+      Column() {
+        // 账号输入框
+        TextInput({ placeholder: '请输入账号', text: this.account })
+          .width('85%')
+          .height(50)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .padding({ left: 20, right: 20 })
+          .fontSize(16)
+          .fontColor('#333333')
+          .placeholderColor('#999999')
+          .margin({ bottom: 20 })
+          .onChange((value) => {
+            this.account = value;
+          })
 
-      // 注册按钮
-      Button('注册')
-        .width('80%')
-        .height(50)
-        .margin({ top: 10 })
-        .onClick(() => {
-          // 跳转到注册页面
-          router.pushUrl({ url: 'pages/sign_in' });
-        });
+        // 密码输入框
+        TextInput({ placeholder: '请输入密码', text: this.password })
+          .width('85%')
+          .height(50)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .padding({ left: 20, right: 20 })
+          .fontSize(16)
+          .fontColor('#333333')
+          .placeholderColor('#999999')
+          .type(InputType.Password)
+          .margin({ bottom: 10 })
+          .onChange((value) => {
+            this.password = value;
+          })
+
+        // 记住密码选项
+        Row() {
+          Checkbox()
+            .select(this.rememberPassword)
+            .onChange((isSelected) => {
+              this.rememberPassword = isSelected;
+              if (!isSelected && this.preferences) {
+                // 取消记住密码时，清空保存的账号密码
+                this.preferences.delete('savedAccount');
+                this.preferences.delete('savedPassword');
+                this.preferences.put('rememberPassword', false);
+                this.preferences.flush();
+                this.account = '';
+                this.password = '';
+              }
+            })
+          Text('记住密码')
+            .fontSize(14)
+            .fontColor('#666666')
+            .margin({ left: 8 })
+        }
+        .width('85%')
+        .justifyContent(FlexAlign.Start)
+        .margin({ bottom: 30 })
+
+        // 登录按钮
+        Button('登录')
+          .width('85%')
+          .height(50)
+          .fontSize(18)
+          .fontWeight(FontWeight.Medium)
+          .backgroundColor('#E6D5B8')
+          .borderRadius(25)
+          .margin({ bottom: 20 })
+          .onClick(() => {
+            this.handleLogin();
+          })
+
+        // 注册按钮
+        Button('注册新账号')
+          .width('85%')
+          .height(50)
+          .fontSize(18)
+          .fontWeight(FontWeight.Medium)
+          .backgroundColor('#FFFFFF')
+          .borderRadius(25)
+          .fontColor('#666666')
+          .border({ width: 1, color: '#E6D5B8' })
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/sign_in' });
+          })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center);
+    .backgroundColor('#F5F5F5')
   }
 }
 
